@@ -31,6 +31,9 @@ vllm-stack:
   # Grafana dashboard sidecar (searchNamespace: ALL).
   grafanaDashboards:
     enabled: true
+    # Group both dashboards in a dedicated Grafana folder (sidecar folderAnnotation).
+    annotations:
+      grafana_folder: "AI Platform"
 
 # Expose the vLLM OpenAI-compatible endpoint through Traefik over TLS once an engine is online.
 # `service.name`/`port` must match the router service rendered by the vllm-stack subchart.
