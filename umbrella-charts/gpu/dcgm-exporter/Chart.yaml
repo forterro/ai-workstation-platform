@@ -1,0 +1,11 @@
+apiVersion: v2
+name: dcgm-exporter
+description: NVIDIA DCGM exporter umbrella for the AI workstation platform (GPU metrics)
+type: application
+version: 0.1.0
+appVersion: 0.1.0
+dependencies:
+  # renovate: registryUrl=https://nvidia.github.io/dcgm-exporter/helm-charts
+  - name: dcgm-exporter
+    repository: https://nvidia.github.io/dcgm-exporter/helm-charts
+    version: 4.8.3

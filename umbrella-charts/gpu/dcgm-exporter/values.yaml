@@ -1,0 +1,16 @@
+# Values passed to the upstream dcgm-exporter subchart.
+# DCGM exports GPU telemetry (utilisation, memory, temperature, power) as Prometheus metrics on
+# port 9400. Prometheus discovers the exporter through the ServiceMonitor shipped by the chart, and
+# the Grafana sidecar auto-loads the dashboard ConfigMap templated alongside this chart.
+dcgm-exporter:
+  # DCGM needs the NVIDIA container runtime to reach the GPU. On WSL2 the GPU is paravirtualised
+  # (GPU-PV) and reachable only through the nvidia runtime, so pin the runtime class here.
+  runtimeClassName: nvidia
+  # The chart already enables the ServiceMonitor by default; keep it explicit so Prometheus scrapes
+  # the exporter regardless of upstream default changes.
+  serviceMonitor:
+    enabled: true
+
+# Toggle for the bundled Grafana dashboard ConfigMap (see templates/dashboard.yaml).
+dashboards:
+  enabled: true

@@ -1,0 +1,12 @@
+{{- if .Values.dashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dcgm-exporter-dashboard
+  labels:
+    # Picked up automatically by the Grafana dashboard sidecar (searchNamespace: ALL).
+    grafana_dashboard: "1"
+data:
+  dcgm-exporter.json: |-
+{{ .Files.Get "dashboards/dcgm-exporter.json" | indent 4 }}
+{{- end }}
