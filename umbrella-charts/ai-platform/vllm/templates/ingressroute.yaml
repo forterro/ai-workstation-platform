@@ -1,0 +1,19 @@
+{{- with .Values.ingressRoute }}
+{{- if .enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vllm
+spec:
+  entryPoints:
+    - {{ .entryPoint }}
+  routes:
+    - match: Host(`{{ .host }}`)
+      kind: Rule
+      services:
+        - name: {{ .service.name }}
+          port: {{ .service.port }}
+  tls:
+    secretName: vllm-tls
+{{- end }}
+{{- end }}

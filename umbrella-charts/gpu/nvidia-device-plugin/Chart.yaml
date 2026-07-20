@@ -1,0 +1,11 @@
+apiVersion: v2
+name: nvidia-device-plugin
+description: NVIDIA device plugin umbrella for the AI workstation platform
+type: application
+version: 0.1.0
+appVersion: 0.1.0
+dependencies:
+  # renovate: registryUrl=https://nvidia.github.io/k8s-device-plugin
+  - name: nvidia-device-plugin
+    repository: https://nvidia.github.io/k8s-device-plugin
+    version: 0.19.3

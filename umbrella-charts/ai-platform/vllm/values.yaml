@@ -1,0 +1,31 @@
+# Values passed to the upstream vllm-stack (vLLM production-stack) subchart.
+#
+# The concrete model to serve is deliberately NOT pinned here yet: the model catalog is an open
+# question in the PRD (tiered inference, quantization, VRAM budget on the RTX A5000 24 GB). Until it
+# is decided, this deploys the production-stack router with no serving engine. Add a modelSpec entry
+# below (and enable the IngressRoute) to bring an engine online.
+vllm-stack:
+  servingEngineSpec:
+    runtimeClassName: nvidia
+    # modelSpec:
+    #   - name: <short-name>
+    #     repository: vllm/vllm-openai
+    #     tag: latest
+    #     modelURL: <hf-model-id>
+    #     replicaCount: 1
+    #     requestGPU: 1
+    #     resources:
+    #       limits:
+    #         nvidia.com/gpu: "1"
+    modelSpec: []
+
+# Expose the vLLM OpenAI-compatible endpoint through Traefik over TLS once an engine is online.
+# `service.name`/`port` must match the router service rendered by the vllm-stack subchart.
+ingressRoute:
+  enabled: false
+  host: vllm.workstation.internal
+  entryPoint: websecure
+  issuer: step-ca-acme
+  service:
+    name: vllm-router-service
+    port: 80

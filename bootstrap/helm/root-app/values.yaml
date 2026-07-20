@@ -1,0 +1,6 @@
+# Root app-of-apps for the AI layer: ArgoCD reconciles the child Applications found under `path`
+# in this git repository. Point repoURL/targetRevision at the repository (and revision) you push to.
+rootApp:
+  repoURL: https://github.com/forterro/ai-workstation-platform.git
+  targetRevision: main
+  path: apps

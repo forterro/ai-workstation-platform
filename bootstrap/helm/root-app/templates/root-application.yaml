@@ -1,0 +1,27 @@
+{{- with .Values.rootApp }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ai-root
+  namespace: {{ $.Release.Namespace }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: ai-platform
+  source:
+    repoURL: {{ .repoURL | quote }}
+    targetRevision: {{ .targetRevision | quote }}
+    path: {{ .path | quote }}
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ $.Release.Namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+{{- end }}

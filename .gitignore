@@ -1,0 +1,8 @@
+# umbrella-charts/ dependencies are vendored and committed so ArgoCD renders them reliably.
+# Only the seed charts under bootstrap/helm are pulled imperatively at bootstrap time.
+bootstrap/helm/**/charts/*.tgz
+bootstrap/helm/**/Chart.lock
+
+# Editor / OS
+.DS_Store
+*.swp

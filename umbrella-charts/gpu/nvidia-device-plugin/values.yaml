@@ -1,0 +1,7 @@
+# Values passed to the upstream nvidia-device-plugin subchart.
+# On WSL2 the GPU is exposed via GPU-PV; the plugin advertises `nvidia.com/gpu` to the scheduler
+# once the NVIDIA container runtime is the default runtime in k3s.
+nvidia-device-plugin:
+  # The plugin only needs to run on nodes that actually have an NVIDIA GPU.
+  # On a single-node WSL2 workstation this is a no-op, but it keeps the DaemonSet honest.
+  runtimeClassName: nvidia

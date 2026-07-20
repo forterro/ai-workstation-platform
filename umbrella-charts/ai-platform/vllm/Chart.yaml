@@ -1,0 +1,11 @@
+apiVersion: v2
+name: vllm
+description: vLLM inference engine umbrella for the AI workstation platform
+type: application
+version: 0.1.0
+appVersion: 0.1.0
+dependencies:
+  # renovate: registryUrl=https://vllm-project.github.io/production-stack
+  - name: vllm-stack
+    repository: https://vllm-project.github.io/production-stack
+    version: 0.1.11
