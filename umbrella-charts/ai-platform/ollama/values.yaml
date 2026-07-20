@@ -1,0 +1,48 @@
+# Ollama serving engine for the AI platform.
+#
+# Ollama is the dynamic multi-model backend: it loads a model on demand and unloads idle ones
+# (OLLAMA_KEEP_ALIVE), keeping the hot models resident when they fit (OLLAMA_MAX_LOADED_MODELS).
+# On a single 24 GB GPU this lets a chat model and a coding model coexist / swap without MIG or
+# vGPU partitioning, which are unavailable on this WSL2 GPU-PV setup.
+#
+# Values are passed to the upstream otwld/ollama subchart. The top-level `enabled` key is the
+# on/off switch wired to the Chart.yaml dependency condition.
+ollama:
+  # Serving-engine switch: set to false to keep Ollama out of the cluster (vLLM can take over).
+  enabled: true
+
+  # The otwld chart exposes the GPU and model configuration under its own `ollama` block.
+  ollama:
+    gpu:
+      # Expose the NVIDIA GPU to the Ollama container (paired with runtimeClassName below).
+      enabled: true
+      type: nvidia
+      number: 1
+    models:
+      # Pulled from the Ollama registry at startup and cached on the persistent volume.
+      # - qwen2.5:7b-instruct     -> IT-ops chat (~4.7 GB, Q4)
+      # - qwen2.5-coder:14b       -> coding assistant (~9 GB, Q4), swapped in on demand
+      pull:
+        - qwen2.5:7b-instruct
+        - qwen2.5-coder:14b
+
+  # The GPU is reachable only through the NVIDIA container runtime under WSL2.
+  runtimeClassName: nvidia
+
+  service:
+    type: ClusterIP
+    port: 11434
+
+  # Cache model blobs so restarts do not re-download several GB. Uses the k3s default
+  # (local-path) StorageClass by leaving storageClass unset.
+  persistentVolume:
+    enabled: true
+    size: 60Gi
+
+  # Keep the two hot models resident when VRAM allows, and release a model after 5 idle minutes so
+  # the currently-used one always has room. This is the "offload on the fly" behaviour.
+  extraEnv:
+    - name: OLLAMA_KEEP_ALIVE
+      value: "5m"
+    - name: OLLAMA_MAX_LOADED_MODELS
+      value: "2"

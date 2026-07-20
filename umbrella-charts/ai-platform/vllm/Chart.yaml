@@ -9,3 +9,5 @@ dependencies:
   - name: vllm-stack
     repository: https://vllm-project.github.io/production-stack
     version: 0.1.11
+    # On/off switch for the vLLM serving engine (see values.yaml `vllm-stack.enabled`).
+    condition: vllm-stack.enabled

@@ -4,7 +4,15 @@
 # question in the PRD (tiered inference, quantization, VRAM budget on the RTX A5000 24 GB). Until it
 # is decided, this deploys the production-stack router with no serving engine. Add a modelSpec entry
 # below (and enable the IngressRoute) to bring an engine online.
+# vLLM high-throughput serving engine.
+#
+# Kept in standby (`enabled: false`) by default: on a single 24 GB GPU vLLM would pin ~15 GB
+# permanently and cannot coexist with Ollama. Flip `vllm-stack.enabled` to true (and set Ollama's
+# switch to false) to serve a single pinned high-throughput model with vLLM instead.
 vllm-stack:
+  # Serving-engine switch wired to the Chart.yaml dependency condition.
+  enabled: false
+
   servingEngineSpec:
     runtimeClassName: nvidia
     # modelSpec:
