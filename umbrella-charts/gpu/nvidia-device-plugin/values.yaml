@@ -5,3 +5,8 @@ nvidia-device-plugin:
   # The plugin only needs to run on nodes that actually have an NVIDIA GPU.
   # On a single-node WSL2 workstation this is a no-op, but it keeps the DaemonSet honest.
   runtimeClassName: nvidia
+  # On WSL2 the GPU is paravirtualised (GPU-PV) and is NOT enumerated as a PCI 10de device, so the
+  # chart's default nodeAffinity (which relies on NFD/GFD labels that never get set here) keeps the
+  # DaemonSet at zero replicas. This single node is known to have the GPU, so drop the affinity and
+  # let the plugin detect the GPU through NVML at runtime.
+  affinity: {}
