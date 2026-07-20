@@ -5,7 +5,9 @@ metadata:
   name: ai-root
   namespace: {{ $.Release.Namespace }}
   finalizers:
-    - resources-finalizer.argocd.argoproj.io
+    # Path-qualified variant (has a `/`) so Kubernetes does not warn about the finalizer name;
+    # ArgoCD still cascade-deletes managed resources (background propagation).
+    - resources-finalizer.argocd.argoproj.io/background
 spec:
   project: ai-platform
   source:
