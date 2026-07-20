@@ -18,6 +18,19 @@ vllm-stack:
     #       limits:
     #         nvidia.com/gpu: "1"
     modelSpec: []
+    # Scrape serving-engine metrics once a model is online (no target until then).
+    serviceMonitor:
+      enabled: true
+
+  # Scrape the router metrics (the router runs even without a serving engine).
+  routerSpec:
+    serviceMonitor:
+      enabled: true
+
+  # Ship the bundled vLLM and LMCache Grafana dashboards as ConfigMaps, auto-discovered by the
+  # Grafana dashboard sidecar (searchNamespace: ALL).
+  grafanaDashboards:
+    enabled: true
 
 # Expose the vLLM OpenAI-compatible endpoint through Traefik over TLS once an engine is online.
 # `service.name`/`port` must match the router service rendered by the vllm-stack subchart.
