@@ -5,21 +5,9 @@ metadata:
   labels:
     app.kubernetes.io/name: librechat
 data:
+  # Rendered verbatim from .Values.librechat.configYaml and mounted at
+  # /app/librechat.yaml (CONFIG_PATH). The public chart ships only a minimal
+  # placeholder; each workstation supplies its endpoints, MCP servers and model
+  # specs through values/librechat.yaml in its private config repo.
   librechat.yaml: |
-    version: 1.2.8
-    cache: true
-    endpoints:
-      custom:
-        - name: "Ollama"
-          # Ollama ignores the API key but LibreChat requires a non-empty value.
-          apiKey: "ollama"
-          baseURL: {{ .Values.ollama.baseURL | quote }}
-          models:
-            default:
-              {{- range .Values.ollama.models }}
-              - {{ . | quote }}
-              {{- end }}
-            fetch: true
-          titleConvo: true
-          titleModel: {{ .Values.ollama.titleModel | quote }}
-          modelDisplayLabel: "Ollama"
+{{ .Values.librechat.configYaml | indent 4 }}
