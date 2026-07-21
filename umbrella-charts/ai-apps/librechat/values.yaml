@@ -40,7 +40,7 @@ mongodb:
   image:
     repository: mongo
     # renovate: datasource=docker depName=mongo
-    tag: "7"
+    tag: "8"
     pullPolicy: IfNotPresent
   persistence:
     size: 8Gi
