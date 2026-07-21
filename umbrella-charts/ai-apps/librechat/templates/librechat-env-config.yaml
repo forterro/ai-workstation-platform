@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: librechat-env-config
+  labels:
+    app.kubernetes.io/name: librechat
+data:
+  {{- range $key, $value := .Values.librechat.env }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

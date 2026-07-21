@@ -1,0 +1,16 @@
+{{- with .Values.ingressRoute }}
+{{- if .enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: librechat-tls
+spec:
+  secretName: librechat-tls
+  dnsNames:
+    - {{ .host }}
+  issuerRef:
+    name: {{ .issuer }}
+    kind: ClusterIssuer
+    group: cert-manager.io
+{{- end }}
+{{- end }}

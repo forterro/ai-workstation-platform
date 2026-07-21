@@ -1,0 +1,19 @@
+{{- with .Values.ingressRoute }}
+{{- if .enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: librechat
+spec:
+  entryPoints:
+    - {{ .entryPoint }}
+  routes:
+    - match: Host(`{{ .host }}`)
+      kind: Rule
+      services:
+        - name: librechat
+          port: {{ $.Values.librechat.port }}
+  tls:
+    secretName: librechat-tls
+{{- end }}
+{{- end }}

@@ -18,13 +18,15 @@ The private config repo's composition root deploys this repository's layer chart
 flowchart LR
   cfg[config repo root] --> aiRoot["1-root-ai-workstation"]
   aiRoot -->|helm chart| layer["bootstrap/helm/layer"]
-  layer -->|renders| apps["ollama / vllm / dcgm / device-plugin"]
+  layer -->|renders| apps["ollama / vllm / litellm / librechat / gpu"]
   apps --> charts[umbrella-charts/*]
 ```
 
 The layer chart is parameterized by a single `configRepoURL`. When it is empty the chart renders
 standalone single-source Applications (public chart defaults only); when a config repo is provided,
-apps flagged `overlay` gain a second source with the per-workstation `values/<app>.yaml`.
+apps flagged `overlay` gain a second source with the per-workstation `values/<app>.yaml`. Apps
+flagged `secrets` also get a companion `<app>-secrets` Application that deploys the config repo's
+`secrets/<app>/` kustomization (KSOPS-decrypted) ahead of the workload.
 
 ## Layers
 
@@ -32,10 +34,12 @@ apps flagged `overlay` gain a second source with the per-workstation `values/<ap
 | --- | --- | --- |
 | `ai-platform` | `ollama` | Local inference engine (Ollama), dynamic multi-model swap |
 | `ai-platform` | `vllm` | Local inference engine (vLLM), OpenAI-compatible endpoint |
+| `ai-platform` | `litellm` | OpenAI-compatible hybrid router (local tiers + optional SaaS escalation) |
+| `ai-apps` | `librechat` | Chat UI (LibreChat + MongoDB) fronting the serving layer; secrets via KSOPS |
 | `gpu` | `dcgm-exporter` | NVIDIA GPU metrics for Prometheus |
 | `gpu` | `nvidia-device-plugin` | Expose the NVIDIA GPU to the scheduler (GPU-PV on WSL2) |
 
-Planned (next increments): `litellm` (tiered router), `qdrant`, `postgres` (KubeBlocks), `rag`.
+Planned (next increments): `qdrant`, `postgres` (KubeBlocks), `rag`.
 
 ## Conventions
 
@@ -59,6 +63,9 @@ This layer is composed by a per-workstation config repo, which deploys the layer
 `configRepoURL`. See the private config repository for the composition root (`1-root-ai-workstation`)
 and the value overlays. To use the layer standalone (public defaults, no overlays), point an ArgoCD
 Application at `bootstrap/helm/layer` with `configRepoURL` unset.
+
+For how to compose this layer from your private config repo (the `1-root-ai-workstation` component and
+the `values/<app>.yaml` overlays), see [docs/private-config-repo.md](docs/private-config-repo.md).
 
 ## Development
 

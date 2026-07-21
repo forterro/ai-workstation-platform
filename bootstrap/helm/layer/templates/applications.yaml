@@ -41,4 +41,34 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+{{- if and $root.Values.configRepoURL .secrets }}
+---
+# Companion secrets app: deploys the config repo's `secrets/{{ .name }}` kustomization
+# (KSOPS-decrypted) into the workload namespace, ahead of the workload (sync-wave -1).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .name }}-secrets
+  namespace: {{ $root.Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/background
+spec:
+  project: {{ $root.Values.project | quote }}
+  source:
+    repoURL: {{ $root.Values.configRepoURL | quote }}
+    targetRevision: {{ $root.Values.configRepoRevision | quote }}
+    path: secrets/{{ .name }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .namespace | quote }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+{{- end }}
 {{- end }}

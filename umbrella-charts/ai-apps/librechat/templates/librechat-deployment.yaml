@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: librechat
+  labels:
+    app.kubernetes.io/name: librechat
+spec:
+  replicas: {{ .Values.librechat.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: librechat
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: librechat
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/librechat-config.yaml") . | sha256sum }}
+        checksum/env: {{ include (print $.Template.BasePath "/librechat-env-config.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: librechat
+          image: "{{ .Values.librechat.image.repository }}:{{ .Values.librechat.image.tag }}"
+          imagePullPolicy: {{ .Values.librechat.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.librechat.port }}
+          envFrom:
+            - configMapRef:
+                name: librechat-env-config
+            - secretRef:
+                name: {{ .Values.librechat.secretName }}
+          volumeMounts:
+            - name: config
+              mountPath: /app/librechat.yaml
+              subPath: librechat.yaml
+          resources:
+            {{- toYaml .Values.librechat.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 40
+            periodSeconds: 20
+      volumes:
+        - name: config
+          configMap:
+            name: librechat-config

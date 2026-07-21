@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: librechat-mongodb
+  labels:
+    app.kubernetes.io/name: librechat-mongodb
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mongodb.persistence.size }}
+  {{- with .Values.mongodb.persistence.storageClass }}
+  storageClassName: {{ . }}
+  {{- end }}

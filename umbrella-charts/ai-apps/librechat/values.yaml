@@ -1,0 +1,62 @@
+# LibreChat + MongoDB, fronting the Ollama serving layer from ai-workstation-platform.
+
+librechat:
+  image:
+    repository: ghcr.io/danny-avila/librechat
+    # renovate: datasource=docker depName=ghcr.io/danny-avila/librechat
+    tag: v0.8.7
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 3080
+  # Non-secret runtime configuration (rendered into a ConfigMap and injected via
+  # envFrom). Secret values (CREDS_*/JWT_*) come from the `secretName` below,
+  # which is provided by the separate KSOPS-decrypted `librechat-secrets` app.
+  env:
+    HOST: "0.0.0.0"
+    PORT: "3080"
+    MONGO_URI: "mongodb://librechat-mongodb:27017/LibreChat"
+    CONFIG_PATH: "/app/librechat.yaml"
+    ALLOW_REGISTRATION: "true"
+    ALLOW_EMAIL_LOGIN: "true"
+    # Disable the Meilisearch dependency (not deployed in this MVP).
+    SEARCH: "false"
+  secretName: librechat-env
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+mongodb:
+  image:
+    repository: mongo
+    # renovate: datasource=docker depName=mongo
+    tag: "7"
+    pullPolicy: IfNotPresent
+  persistence:
+    size: 8Gi
+    # Empty => cluster default StorageClass (local-path on k3s).
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+# Ollama OpenAI-compatible endpoint exposed as a LibreChat custom endpoint.
+# The model list is a minimal default; each workstation overrides it (and may
+# repoint baseURL at the LiteLLM router) through values/librechat.yaml.
+ollama:
+  baseURL: "http://ollama.ollama.svc.cluster.local:11434/v1"
+  models:
+    - qwen2.5:7b-instruct
+  titleModel: qwen2.5:7b-instruct
+
+# TLS ingress through Traefik, certificate issued by step-ca via cert-manager.
+ingressRoute:
+  enabled: true
+  host: chat.workstation.internal
+  entryPoint: websecure
+  issuer: step-ca-acme

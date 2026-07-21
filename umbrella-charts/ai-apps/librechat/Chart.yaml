@@ -1,0 +1,6 @@
+apiVersion: v2
+name: librechat
+description: LibreChat chat UI + MongoDB, wired to the in-cluster Ollama serving layer
+type: application
+version: 0.1.0
+appVersion: v0.8.7
