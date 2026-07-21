@@ -8,6 +8,6 @@ dependencies:
   # renovate: registryUrl=https://otwld.github.io/ollama-helm
   - name: ollama
     repository: https://otwld.github.io/ollama-helm/
-    version: 1.67.0
+    version: 1.68.0
     # On/off switch for the Ollama serving engine (see values.yaml `ollama.enabled`).
     condition: ollama.enabled
