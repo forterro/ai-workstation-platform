@@ -34,10 +34,12 @@ data:
               COMPLEX: coding-local
               REASONING: {{ if .Values.saas.enabled }}saas{{ else }}coding-local{{ end }}
             complexity_router_default_model: ops-local
-            classifier_type: llm
+            classifier_type: {{ .Values.router.classifierType }}
+            {{- if eq .Values.router.classifierType "llm" }}
             classifier_llm_config:
               model: ops-local
               timeout_ms: {{ .Values.router.classifierTimeoutMs }}
+            {{- end }}
             keyword_tier_rules:
               - keywords: [function, class, method, refactor, bug, debug, stacktrace, compile, "unit test", regex, python, javascript, typescript, golang, rust, sql, dockerfile, yaml, kubernetes, helm, terraform]
                 tier: COMPLEX

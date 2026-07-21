@@ -2,7 +2,7 @@
 # It does NOT serve models; it classifies each request and routes it to a backend.
 #
 # Routing model (Auto Router v2, complexity_router):
-#   - a small local model classifies every request (classifier_type: llm)
+#   - a deterministic heuristic (length + keyword scoring) classifies every request
 #   - deterministic keyword rules escalate coding/reasoning requests
 #   - each complexity tier maps to one backend:
 #       SIMPLE / MEDIUM -> local operations model
@@ -39,7 +39,12 @@ router:
   opsModel: qwen2.5:7b-instruct
   # Local coding model (code generation, refactoring, debugging).
   codingModel: qwen2.5-coder:14b
-  # Timeout for the small LLM classifier call before falling back to the heuristic scorer.
+  # Complexity classifier: "heuristic" (deterministic length + keyword scoring) or "llm"
+  # (a small model classifies each request). The llm classifier needs structured
+  # response_format support the local Ollama backend does not provide, so it errors and
+  # falls back on every request; heuristic is the reliable default.
+  classifierType: heuristic
+  # Timeout for the LLM classifier call (only used when classifierType is "llm").
   classifierTimeoutMs: 2000
 
 # SaaS escalation tier. Disabled by default: enabling it and providing the API key
