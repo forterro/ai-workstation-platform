@@ -1,0 +1,15 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.dashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-dashboard
+  labels:
+    # Picked up automatically by the Grafana dashboard sidecar (searchNamespace: ALL).
+    grafana_dashboard: "1"
+  annotations:
+    # Places the dashboard in a dedicated Grafana folder (sidecar folderAnnotation).
+    grafana_folder: "AI"
+data:
+  litellm.json: |-
+{{ .Files.Get "dashboards/litellm.json" | indent 4 }}
+{{- end }}

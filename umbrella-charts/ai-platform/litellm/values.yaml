@@ -57,3 +57,17 @@ saas:
 masterKey:
   enabled: false
   secretName: litellm-secrets
+
+# Prometheus observability. LiteLLM exposes /metrics through the prometheus callback.
+# The core request/latency/token/deployment metrics need no database; only budget,
+# key and team metrics require one. As an internal ClusterIP service the endpoint is
+# scraped without a key (require_auth_for_metrics_endpoint: false in the config).
+monitoring:
+  enabled: true
+  # ServiceMonitor for the Prometheus Operator (monitoring.coreos.com CRDs).
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+  # Grafana dashboard ConfigMap, auto-loaded by the Grafana sidecar.
+  dashboard:
+    enabled: true

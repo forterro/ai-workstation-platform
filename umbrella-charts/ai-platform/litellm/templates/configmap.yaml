@@ -47,6 +47,11 @@ data:
               {{- end }}
     litellm_settings:
       drop_params: true
+      {{- if .Values.monitoring.enabled }}
+      callbacks: ["prometheus"]
+      # Internal ClusterIP service scraped by Prometheus without an API key.
+      require_auth_for_metrics_endpoint: false
+      {{- end }}
     {{- if .Values.masterKey.enabled }}
     general_settings:
       master_key: os.environ/LITELLM_MASTER_KEY
