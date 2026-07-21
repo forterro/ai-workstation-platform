@@ -71,3 +71,13 @@ monitoring:
   # Grafana dashboard ConfigMap, auto-loaded by the Grafana sidecar.
   dashboard:
     enabled: true
+
+# Traefik IngressRoute exposing the proxy at a stable host name, so the local coding
+# agent (and any host client) can reach it at https://litellm.workstation.internal
+# instead of a port-forward. TLS is issued by the workstation step-ca ACME ClusterIssuer.
+# The host name, entry point and issuer belong to the k3s-workstation-platform layer.
+ingressRoute:
+  enabled: true
+  entryPoint: websecure
+  host: litellm.workstation.internal
+  issuer: step-ca-acme
