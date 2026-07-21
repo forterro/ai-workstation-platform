@@ -8,3 +8,12 @@ data:
   {{- range $key, $value := .Values.librechat.env }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
+  {{- /* Public base URL, derived from the ingress host, so LibreChat builds
+         correct absolute URLs (e.g. MCP OAuth callbacks) instead of localhost.
+         Skipped if explicitly provided in .Values.librechat.env. */}}
+  {{- if and .Values.ingressRoute.enabled (not (hasKey .Values.librechat.env "DOMAIN_CLIENT")) }}
+  DOMAIN_CLIENT: {{ printf "https://%s" .Values.ingressRoute.host | quote }}
+  {{- end }}
+  {{- if and .Values.ingressRoute.enabled (not (hasKey .Values.librechat.env "DOMAIN_SERVER")) }}
+  DOMAIN_SERVER: {{ printf "https://%s" .Values.ingressRoute.host | quote }}
+  {{- end }}
