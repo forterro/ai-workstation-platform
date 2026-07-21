@@ -1,0 +1,44 @@
+{{- $root := . -}}
+{{- range .Values.apps }}
+{{- $overlay := true -}}
+{{- if hasKey . "overlay" }}{{- $overlay = .overlay -}}{{- end }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .name }}
+  namespace: {{ $root.Release.Namespace }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/background
+spec:
+  project: {{ $root.Values.project | quote }}
+  {{- if and $root.Values.configRepoURL $overlay }}
+  # Composed: public chart plus this workstation's value overlay.
+  sources:
+    - repoURL: {{ $root.Values.chartRepoURL | quote }}
+      targetRevision: {{ $root.Values.chartRevision | quote }}
+      path: {{ .chartPath | quote }}
+      helm:
+        valueFiles:
+          - $values/values/{{ .name }}.yaml
+    - repoURL: {{ $root.Values.configRepoURL | quote }}
+      targetRevision: {{ $root.Values.configRepoRevision | quote }}
+      ref: values
+  {{- else }}
+  # Standalone (or overlay-less) app: the public chart defaults only.
+  source:
+    repoURL: {{ $root.Values.chartRepoURL | quote }}
+    targetRevision: {{ $root.Values.chartRevision | quote }}
+    path: {{ .chartPath | quote }}
+  {{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .namespace | quote }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+{{- end }}

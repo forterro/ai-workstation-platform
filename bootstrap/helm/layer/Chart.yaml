@@ -1,0 +1,9 @@
+apiVersion: v2
+name: ai-workstation-layer
+description: >-
+  Renders the AI serving layer as ArgoCD Applications. Standalone when
+  configRepoURL is empty (single-source charts); composed when a per-workstation
+  config repository is provided (adds the value overlay as a second source).
+type: application
+version: 0.1.0
+appVersion: 0.1.0

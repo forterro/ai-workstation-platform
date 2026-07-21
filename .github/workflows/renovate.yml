@@ -1,0 +1,41 @@
+name: Renovate
+
+on:
+  schedule:
+    # Daily; opens a PR for every update detected on the run (no PR rate limits).
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: Renovate log level
+        required: false
+        default: info
+        type: choice
+        options:
+          - debug
+          - info
+          - warn
+          - error
+
+permissions:
+  contents: read
+
+concurrency:
+  group: renovate
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Renovate
+        uses: renovatebot/github-action@v46.1.20
+        with:
+          token: ${{ secrets.RENOVATE_TOKEN }}
+        env:
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          RENOVATE_ONBOARDING: "false"
+          LOG_LEVEL: ${{ github.event.inputs.logLevel || 'info' }}

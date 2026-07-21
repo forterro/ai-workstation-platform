@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard"
+  ],
+  "timezone": "Europe/Paris",
+  "semanticCommits": "enabled",
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
+  "helmv3": {
+    "fileMatch": ["(^|/)Chart\\.yaml$"]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Bump image tags and CLI versions annotated with a # renovate: comment",
+      "fileMatch": ["(^|/)values\\.yaml$", "(^|/)tool-versions\\.yaml$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)(?: versioning=(?<versioning>\\S+))?\\s*\\n\\s*[A-Za-z0-9_.-]+:\\s*[\"']?(?<currentValue>[^\"'\\s]+)"
+      ]
+    }
+  ]
+}

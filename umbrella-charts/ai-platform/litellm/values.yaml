@@ -1,0 +1,59 @@
+# LiteLLM proxy: OpenAI-compatible gateway and hybrid router.
+# It does NOT serve models; it classifies each request and routes it to a backend.
+#
+# Routing model (Auto Router v2, complexity_router):
+#   - a small local model classifies every request (classifier_type: llm)
+#   - deterministic keyword rules escalate coding/reasoning requests
+#   - each complexity tier maps to one backend:
+#       SIMPLE / MEDIUM -> local operations model
+#       COMPLEX         -> local coding model
+#       REASONING       -> SaaS model when enabled, otherwise the local coding model
+#
+# Model names and the SaaS toggle are workstation choices: override them from the
+# consumer config overlay (values/litellm.yaml), never in this public default.
+
+image:
+  repository: ghcr.io/berriai/litellm
+  # renovate: datasource=docker depName=ghcr.io/berriai/litellm
+  tag: v1.93.0
+  pullPolicy: IfNotPresent
+
+replicas: 1
+port: 4000
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi
+
+# Backends the router dispatches to.
+router:
+  # Ollama OpenAI-compatible endpoint (in-cluster service).
+  ollamaBaseURL: http://ollama.ollama.svc.cluster.local:11434/v1
+  # Ollama ignores the API key, but the OpenAI client requires a non-empty value.
+  ollamaApiKey: ollama
+  # Local operations model (short, simple, general requests).
+  opsModel: qwen2.5:7b-instruct
+  # Local coding model (code generation, refactoring, debugging).
+  codingModel: qwen2.5-coder:14b
+  # Timeout for the small LLM classifier call before falling back to the heuristic scorer.
+  classifierTimeoutMs: 2000
+
+# SaaS escalation tier. Disabled by default: enabling it and providing the API key
+# secret is a workstation choice made in the consumer config overlay.
+saas:
+  enabled: false
+  model: mistral/mistral-large-latest
+  # Environment variable LiteLLM reads for the SaaS API key (os.environ/<name>).
+  apiKeyEnv: MISTRAL_API_KEY
+  # Secret (in the release namespace) exposing apiKeyEnv. Mounted optionally, so the
+  # proxy still starts when the secret is absent; SaaS calls fail until it is provided.
+  secretName: litellm-secrets
+
+# Optional proxy authentication. Disabled by default for an internal cluster service.
+masterKey:
+  enabled: false
+  secretName: litellm-secrets

@@ -1,6 +1,0 @@
-apiVersion: v2
-name: ai-root-app
-description: ArgoCD root app-of-apps for the AI workstation platform
-type: application
-version: 0.1.0
-appVersion: 0.1.0

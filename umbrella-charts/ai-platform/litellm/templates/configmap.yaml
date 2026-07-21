@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  labels:
+    app.kubernetes.io/name: litellm
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  config.yaml: |
+    model_list:
+      - model_name: ops-local
+        litellm_params:
+          model: openai/{{ .Values.router.opsModel }}
+          api_base: {{ .Values.router.ollamaBaseURL }}
+          api_key: {{ .Values.router.ollamaApiKey | quote }}
+      - model_name: coding-local
+        litellm_params:
+          model: openai/{{ .Values.router.codingModel }}
+          api_base: {{ .Values.router.ollamaBaseURL }}
+          api_key: {{ .Values.router.ollamaApiKey | quote }}
+      {{- if .Values.saas.enabled }}
+      - model_name: saas
+        litellm_params:
+          model: {{ .Values.saas.model }}
+          api_key: os.environ/{{ .Values.saas.apiKeyEnv }}
+      {{- end }}
+      - model_name: auto
+        litellm_params:
+          model: auto_router/complexity_router
+          complexity_router_config:
+            tiers:
+              SIMPLE: ops-local
+              MEDIUM: ops-local
+              COMPLEX: coding-local
+              REASONING: {{ if .Values.saas.enabled }}saas{{ else }}coding-local{{ end }}
+            complexity_router_default_model: ops-local
+            classifier_type: llm
+            classifier_llm_config:
+              model: ops-local
+              timeout_ms: {{ .Values.router.classifierTimeoutMs }}
+            keyword_tier_rules:
+              - keywords: [function, class, method, refactor, bug, debug, stacktrace, compile, "unit test", regex, python, javascript, typescript, golang, rust, sql, dockerfile, yaml, kubernetes, helm, terraform]
+                tier: COMPLEX
+              {{- if .Values.saas.enabled }}
+              - keywords: [prove, derive, "trade-off", architecture, "design a", "step by step", "analyze deeply", theorem, optimize]
+                tier: REASONING
+              {{- end }}
+    litellm_settings:
+      drop_params: true
+    {{- if .Values.masterKey.enabled }}
+    general_settings:
+      master_key: os.environ/LITELLM_MASTER_KEY
+    {{- end }}

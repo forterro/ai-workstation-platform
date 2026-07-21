@@ -1,0 +1,39 @@
+# AI serving layer definition. This list is the single source of truth for the
+# layer; it lives in the public platform repo and is user-agnostic.
+#
+# chartRepoURL is this repo's own URL (self reference, not per-user). The only
+# per-workstation value is configRepoURL, injected by the composition root
+# (`1-root-ai-workstation`) via helm parameters. When it is empty the layer
+# renders standalone single-source Applications.
+project: default
+
+chartRepoURL: https://github.com/forterro/ai-workstation-platform.git
+chartRevision: main
+
+# Set by the composition root to this workstation's private config repository.
+configRepoURL: ""
+configRepoRevision: main
+
+# Each entry becomes one ArgoCD Application. `overlay: true` adds the config repo
+# value overlay (`values/<name>.yaml`) as a second source when composed.
+apps:
+  - name: ollama
+    namespace: ollama
+    chartPath: umbrella-charts/ai-platform/ollama
+    overlay: true
+  - name: vllm
+    namespace: ai-platform
+    chartPath: umbrella-charts/ai-platform/vllm
+    overlay: true
+  - name: litellm
+    namespace: litellm
+    chartPath: umbrella-charts/ai-platform/litellm
+    overlay: true
+  - name: dcgm-exporter
+    namespace: dcgm-exporter
+    chartPath: umbrella-charts/gpu/dcgm-exporter
+    overlay: false
+  - name: nvidia-device-plugin
+    namespace: nvidia-device-plugin
+    chartPath: umbrella-charts/gpu/nvidia-device-plugin
+    overlay: false

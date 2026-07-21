@@ -8,8 +8,10 @@
 # Values are passed to the upstream otwld/ollama subchart. The top-level `enabled` key is the
 # on/off switch wired to the Chart.yaml dependency condition.
 ollama:
-  # Serving-engine switch: set to false to keep Ollama out of the cluster (vLLM can take over).
-  enabled: true
+  # Serving-engine switch (safe default OFF): the public chart ships disabled so a standalone
+  # deploy stays inert. A personal config repo turns it on via a values overlay (see the
+  # workstation composition repo's values/ollama.yaml).
+  enabled: false
 
   # The otwld chart exposes the GPU and model configuration under its own `ollama` block.
   ollama:
@@ -19,12 +21,12 @@ ollama:
       type: nvidia
       number: 1
     models:
-      # Pulled from the Ollama registry at startup and cached on the persistent volume.
-      # - qwen2.5:7b-instruct     -> IT-ops chat (~4.7 GB, Q4)
-      # - qwen2.5-coder:14b       -> coding assistant (~9 GB, Q4), swapped in on demand
-      pull:
-        - qwen2.5:7b-instruct
-        - qwen2.5-coder:14b
+      # Which models to pull is a per-workstation choice: the public chart ships
+      # an empty list (safe default) and the personal config repo provides the
+      # actual models via its values/ollama.yaml overlay. Examples:
+      #   - qwen2.5:7b-instruct   -> IT-ops chat (~4.7 GB, Q4)
+      #   - qwen2.5-coder:14b     -> coding assistant (~9 GB, Q4), swapped in on demand
+      pull: []
 
   # The GPU is reachable only through the NVIDIA container runtime under WSL2.
   runtimeClassName: nvidia
