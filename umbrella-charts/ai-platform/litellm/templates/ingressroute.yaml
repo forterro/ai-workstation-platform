@@ -14,7 +14,7 @@ spec:
       kind: Rule
       services:
         - name: litellm
-          port: {{ .Values.port }}
+          port: {{ index .Values "litellm-helm" "service" "port" }}
   tls:
     secretName: litellm-tls
 {{- end }}
