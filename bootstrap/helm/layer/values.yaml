@@ -32,6 +32,9 @@ apps:
     chartPath: umbrella-charts/ai-platform/litellm
     overlay: true
     secrets: true
+    # The KubeBlocks Cluster is heavily defaulted server-side; diff server-side so it
+    # does not show as permanently OutOfSync.
+    serverSideDiff: true
   - name: librechat
     namespace: librechat
     chartPath: umbrella-charts/ai-apps/librechat

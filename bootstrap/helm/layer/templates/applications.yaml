@@ -8,6 +8,12 @@ kind: Application
 metadata:
   name: {{ .name }}
   namespace: {{ $root.Release.Namespace }}
+  {{- if .serverSideDiff }}
+  annotations:
+    # Diff against the server-rendered object so controller-defaulted fields (e.g.
+    # KubeBlocks Cluster defaults) do not read as perpetual drift.
+    argocd.argoproj.io/compare-options: ServerSideDiff=true
+  {{- end }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io/background
 spec:
