@@ -63,9 +63,13 @@ litellm-helm:
     interval: 30s
     scrapeTimeout: 10s
 
-  # Prisma schema migration Job (ArgoCD hooks are the upstream default).
+  # Prisma schema migration. The upstream Job is annotated as an ArgoCD PreSync hook,
+  # which runs BEFORE the umbrella's KubeBlocks Cluster (a normal Sync resource) is
+  # created, so it would wait forever on the not-yet-existing connection secret. Keep
+  # it disabled: the proxy then runs `prisma db push` itself at boot, retrying until
+  # the KubeBlocks Cluster has provisioned its account secret and database.
   migrationJob:
-    enabled: true
+    enabled: false
 
   # Rendered verbatim as the proxy config.yaml. This is the full working default for
   # the workstation; the consumer overlay replaces this block to change models or add
