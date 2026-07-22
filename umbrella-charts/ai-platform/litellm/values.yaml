@@ -92,6 +92,17 @@ litellm-helm:
           model: openai/qwen2.5-coder:14b
           api_base: http://ollama.ollama.svc.cluster.local:11434/v1
           api_key: "ollama"
+      # Local multilingual embedding model (bge-m3). Not a chat model: it is used only
+      # by the `auto` router below for semantic keyword matching so French prompts
+      # route like their English equivalents. mode:embedding tells LiteLLM to call the
+      # /embeddings endpoint.
+      - model_name: embed-local
+        litellm_params:
+          model: openai/bge-m3
+          api_base: http://ollama.ollama.svc.cluster.local:11434/v1
+          api_key: "ollama"
+        model_info:
+          mode: embedding
       # Hybrid router entry: classifies each request and dispatches to a tier.
       - model_name: auto
         litellm_params:
@@ -103,14 +114,31 @@ litellm-helm:
               COMPLEX: coding-local
               # No SaaS tier by default: reasoning stays on the local coding model.
               REASONING: coding-local
-            complexity_router_default_model: ops-local
-            # Deterministic heuristic (length + keyword scoring). The "llm" classifier
-            # needs structured response_format the local Ollama backend lacks, so it
-            # errors and falls back on every request; heuristic is the reliable default.
+            default_model: ops-local
+            # Deterministic heuristic scorer, used as the fallback classifier when no
+            # keyword rule matches. The "llm" classifier needs structured
+            # response_format the local Ollama backend lacks, so it errors and falls
+            # back on every request; the scorer is the reliable default.
             classifier_type: heuristic
+            # Match the keyword rules below by embedding similarity (not just literal
+            # substring), so French paraphrases route like their English equivalents.
+            # Falls back to the heuristic scorer when nothing scores above
+            # match_threshold. Requires the embed-local model above.
+            semantic_keyword_matching: true
+            embedding_model: embed-local
+            match_threshold: 0.5
+            # Append French/infra terms to the built-in (English) technical keyword
+            # list feeding the scorer's technicalTerms dimension.
+            custom_technical_keywords: [kubeblocks, argocd, traefik, metallb, ollama, qdrant, "déploiement", "conteneur", "réseau", "certificat"]
+            # Bilingual (FR/EN) utterances per tier. Multiple matches escalate to the
+            # highest tier (SIMPLE < MEDIUM < COMPLEX < REASONING).
             keyword_tier_rules:
-              - keywords: [function, class, method, refactor, bug, debug, stacktrace, compile, "unit test", regex, python, javascript, typescript, golang, rust, sql, dockerfile, yaml, kubernetes, helm, terraform]
+              - keywords: [hi, hello, thanks, "what is", define, bonjour, merci, "c'est quoi", "définis", "explique simplement", "résume", "traduis"]
+                tier: SIMPLE
+              - keywords: [function, class, method, refactor, bug, debug, stacktrace, compile, "unit test", regex, python, javascript, typescript, golang, rust, sql, dockerfile, yaml, kubernetes, helm, terraform, "écris une fonction", "corrige ce bug", "refactorise", "débogue", "génère du code", "test unitaire", "écris un script", "erreur de compilation"]
                 tier: COMPLEX
+              - keywords: [reasoning, prove, "step by step", "analyze in depth", architecture, "trade-off", strategy, rationale, "root cause", optimize, "design decision", raisonne, "étape par étape", "analyse en détail", compromis, stratégie, "cause racine", "décision d'architecture", "compare les approches", "explique en profondeur"]
+                tier: REASONING
     litellm_settings:
       drop_params: true
       callbacks: ["prometheus"]
