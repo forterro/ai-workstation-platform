@@ -60,6 +60,9 @@ mongo:
   # Supported serviceVersion values come from `kubectl get cmpv mongodb`.
   serviceVersion: "7.0.28"
   terminationPolicy: Delete
+  # false enables the KubeBlocks mongodb-exporter sidecar (Prometheus metrics on
+  # exporter/9216); the PodMonitor below wires it into the observability stack.
+  disableExporter: false
   replicas: 1
   storageClassName: ""
   storage: 8Gi
@@ -72,6 +75,17 @@ mongo:
       memory: 256Mi
     limits:
       memory: 1Gi
+
+# Prometheus observability for the KubeBlocks MongoDB cluster. `podMonitor` scrapes the
+# mongodb-exporter sidecar (requires mongo.disableExporter=false) and lives in this
+# instance namespace; the Grafana dashboard itself is shipped once at the KubeBlocks
+# operator level, not here.
+monitoring:
+  enabled: true
+  podMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
 
 # TLS ingress through Traefik, certificate issued by step-ca via cert-manager.
 ingressRoute:

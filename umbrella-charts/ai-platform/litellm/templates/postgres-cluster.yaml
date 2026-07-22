@@ -20,7 +20,9 @@ spec:
   componentSpecs:
     - name: postgresql
       serviceVersion: {{ .Values.postgres.serviceVersion | quote }}
-      disableExporter: true
+      # false enables the KubeBlocks postgres-exporter sidecar (metrics on port
+      # http-metrics/9187), scraped by the PodMonitor in templates/postgres-podmonitor.yaml.
+      disableExporter: {{ .Values.postgres.disableExporter }}
       replicas: {{ .Values.postgres.replicas }}
       resources:
         {{- toYaml .Values.postgres.resources | nindent 8 }}

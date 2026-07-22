@@ -20,13 +20,18 @@ spec:
   componentSpecs:
     - name: mongodb
       serviceVersion: {{ .Values.mongo.serviceVersion | quote }}
-      disableExporter: true
+      # false enables the KubeBlocks mongodb-exporter sidecar (metrics on port
+      # exporter/9216), scraped by the PodMonitor in templates/mongo-podmonitor.yaml.
+      disableExporter: {{ .Values.mongo.disableExporter }}
       replicas: {{ .Values.mongo.replicas }}
       {{- with .Values.mongo.rootPasswordSecret }}
       # Pin the root account password from a private KSOPS Secret so the app's MONGO_URI
       # can embed it deterministically. The Secret must expose a `password` key.
       systemAccounts:
         - name: root
+          # disabled defaulted by the controller; set it explicitly so ArgoCD does not
+          # keep the Cluster perpetually OutOfSync on this injected field.
+          disabled: false
           secretRef:
             name: {{ . }}
             password: password

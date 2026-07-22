@@ -1,0 +1,26 @@
+{{- if and .Values.postgres.enabled .Values.monitoring.enabled .Values.monitoring.podMonitor.enabled (not .Values.postgres.disableExporter) }}
+# Scrapes the KubeBlocks postgres-exporter sidecar (enabled via postgres.disableExporter=false).
+# The exporter container exposes Prometheus metrics on the pod port named http-metrics (9187).
+# Discovered cluster-wide by the kube-prometheus-stack (podMonitorSelectorNilUsesHelmValues=false).
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: litellm-pg
+  labels:
+    app.kubernetes.io/name: litellm
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  podMetricsEndpoints:
+    - path: /metrics
+      port: http-metrics
+      scheme: http
+      interval: {{ .Values.monitoring.podMonitor.interval }}
+      scrapeTimeout: {{ .Values.monitoring.podMonitor.scrapeTimeout }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Values.postgres.clusterName }}
+      apps.kubeblocks.io/component-name: postgresql
+{{- end }}

@@ -130,6 +130,9 @@ postgres:
   # Supported serviceVersion values come from `kubectl get cmpv postgresql`.
   serviceVersion: "17.5.0"
   terminationPolicy: Delete
+  # false enables the KubeBlocks postgres-exporter sidecar (Prometheus metrics on
+  # http-metrics/9187); the PodMonitor below wires it into the observability stack.
+  disableExporter: false
   replicas: 1
   storageClassName: ""
   storage: 8Gi
@@ -167,6 +170,11 @@ monitoring:
   enabled: true
   dashboard:
     enabled: true
+  # PodMonitor scraping the KubeBlocks postgres-exporter (requires postgres.disableExporter=false).
+  podMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
 
 # Traefik IngressRoute + step-ca Certificate exposing the proxy at a stable host name
 # (templates/ingressroute.yaml, templates/certificate.yaml), so host clients reach it at

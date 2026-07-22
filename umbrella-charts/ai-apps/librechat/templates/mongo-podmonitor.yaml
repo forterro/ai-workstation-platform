@@ -1,0 +1,26 @@
+{{- if and .Values.mongo.enabled .Values.monitoring.enabled .Values.monitoring.podMonitor.enabled (not .Values.mongo.disableExporter) }}
+# Scrapes the KubeBlocks mongodb-exporter sidecar (enabled via mongo.disableExporter=false).
+# The exporter container exposes Prometheus metrics on the pod port named exporter (9216).
+# Discovered cluster-wide by the kube-prometheus-stack (podMonitorSelectorNilUsesHelmValues=false).
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: librechat-mongo
+  labels:
+    app.kubernetes.io/name: librechat
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  podMetricsEndpoints:
+    - path: /metrics
+      port: exporter
+      scheme: http
+      interval: {{ .Values.monitoring.podMonitor.interval }}
+      scrapeTimeout: {{ .Values.monitoring.podMonitor.scrapeTimeout }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Values.mongo.clusterName }}
+      apps.kubeblocks.io/component-name: mongodb
+{{- end }}
