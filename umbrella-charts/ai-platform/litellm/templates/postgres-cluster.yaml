@@ -1,0 +1,38 @@
+{{- if .Values.postgres.enabled }}
+# KubeBlocks PostgreSQL Cluster backing the LiteLLM proxy database.
+# Requires the KubeBlocks operator and the postgresql addon (ClusterDefinition
+# "postgresql") installed by the k3s-workstation-platform layer. KubeBlocks generates
+# the connection secret "<clusterName>-postgresql-account-postgres" (keys username,
+# password) and the primary service "<clusterName>-postgresql-postgresql" (role=primary),
+# which litellm-helm.db consumes.
+apiVersion: apps.kubeblocks.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.postgres.clusterName }}
+  labels:
+    app.kubernetes.io/name: litellm
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  terminationPolicy: {{ .Values.postgres.terminationPolicy }}
+  # DO NOT change: selects the PostgreSQL ClusterDefinition.
+  clusterDef: postgresql
+  topology: replication
+  componentSpecs:
+    - name: postgresql
+      serviceVersion: {{ .Values.postgres.serviceVersion | quote }}
+      disableExporter: true
+      replicas: {{ .Values.postgres.replicas }}
+      resources:
+        {{- toYaml .Values.postgres.resources | nindent 8 }}
+      volumeClaimTemplates:
+        - name: data
+          spec:
+            {{- with .Values.postgres.storageClassName }}
+            storageClassName: {{ . | quote }}
+            {{- end }}
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: {{ .Values.postgres.storage }}
+{{- end }}

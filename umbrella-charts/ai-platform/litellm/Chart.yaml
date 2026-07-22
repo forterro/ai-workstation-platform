@@ -1,6 +1,13 @@
 apiVersion: v2
 name: litellm
-description: LiteLLM proxy as the OpenAI-compatible hybrid router in front of the serving engines
+description: LiteLLM umbrella wrapping the official litellm-helm chart (OpenAI-compatible hybrid router)
 type: application
 version: 0.1.0
-appVersion: v1.93.0
+appVersion: 0.1.0
+dependencies:
+  # Official upstream chart. OCI dependency: repository is the registry namespace,
+  # helm appends the chart name. Renovate (helmv3 manager) tracks OCI tags directly.
+  # renovate: registryUrl=oci://ghcr.io/berriai
+  - name: litellm-helm
+    repository: oci://ghcr.io/berriai
+    version: 1.93.0
