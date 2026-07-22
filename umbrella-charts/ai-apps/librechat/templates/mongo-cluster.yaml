@@ -1,0 +1,47 @@
+{{- if .Values.mongo.enabled }}
+# KubeBlocks MongoDB Cluster backing LibreChat.
+# Requires the KubeBlocks operator and the mongodb addon (ClusterDefinition "mongodb")
+# installed by the k3s-workstation-platform layer. KubeBlocks generates the account
+# secret "<clusterName>-mongodb-account-root" (keys username, password) and the primary
+# service "<clusterName>-mongodb-mongodb" (role=primary). LibreChat's MONGO_URI (from
+# the librechat-env Secret) targets that service with authSource=admin&directConnection=true.
+apiVersion: apps.kubeblocks.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.mongo.clusterName }}
+  labels:
+    app.kubernetes.io/name: librechat
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  terminationPolicy: {{ .Values.mongo.terminationPolicy }}
+  # DO NOT change: selects the MongoDB ClusterDefinition.
+  clusterDef: mongodb
+  topology: replicaset
+  componentSpecs:
+    - name: mongodb
+      serviceVersion: {{ .Values.mongo.serviceVersion | quote }}
+      disableExporter: true
+      replicas: {{ .Values.mongo.replicas }}
+      {{- with .Values.mongo.rootPasswordSecret }}
+      # Pin the root account password from a private KSOPS Secret so the app's MONGO_URI
+      # can embed it deterministically. The Secret must expose a `password` key.
+      systemAccounts:
+        - name: root
+          secretRef:
+            name: {{ . }}
+            password: password
+      {{- end }}
+      resources:
+        {{- toYaml .Values.mongo.resources | nindent 8 }}
+      volumeClaimTemplates:
+        - name: data
+          spec:
+            {{- with .Values.mongo.storageClassName }}
+            storageClassName: {{ . | quote }}
+            {{- end }}
+            accessModes:
+              - ReadWriteOnce
+            resources:
+              requests:
+                storage: {{ .Values.mongo.storage }}
+{{- end }}

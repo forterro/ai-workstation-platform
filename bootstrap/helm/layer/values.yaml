@@ -46,6 +46,15 @@ apps:
     chartPath: umbrella-charts/ai-apps/librechat
     overlay: true
     secrets: true
+    # The KubeBlocks controller fills these on the Cluster after creation; ignore them
+    # so the app does not sit permanently OutOfSync.
+    ignoreDifferences:
+      - group: apps.kubeblocks.io
+        kind: Cluster
+        name: librechat-mongo
+        jsonPointers:
+          - /spec/componentSpecs/0/componentDef
+          - /spec/componentSpecs/0/podUpdatePolicy
   - name: dcgm-exporter
     namespace: dcgm-exporter
     chartPath: umbrella-charts/gpu/dcgm-exporter

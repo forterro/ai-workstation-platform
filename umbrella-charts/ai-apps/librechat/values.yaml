@@ -1,5 +1,8 @@
-# LibreChat + MongoDB. The librechat.yaml (endpoints, MCP servers, model specs) is
-# supplied per workstation through values/librechat.yaml; see configYaml below.
+# LibreChat + MongoDB (KubeBlocks). The librechat.yaml (endpoints, MCP servers, model
+# specs) is supplied per workstation through values/librechat.yaml; see configYaml
+# below. MongoDB is provisioned as a KubeBlocks Cluster (see `mongo:` below), matching
+# the LiteLLM/Postgres pattern; the connection URI (with root credentials) is injected
+# via the librechat-env Secret, not the plaintext env ConfigMap.
 
 librechat:
   image:
@@ -15,7 +18,11 @@ librechat:
   env:
     HOST: "0.0.0.0"
     PORT: "3080"
-    MONGO_URI: "mongodb://librechat-mongodb:27017/LibreChat"
+    # MONGO_URI is NOT set here: with the KubeBlocks MongoDB cluster (see `mongo:`
+    # below) the connection string carries the root credentials, so it is supplied
+    # as a secret value through the librechat-env Secret (envFrom secretRef), never
+    # this ConfigMap. To bring your own unauthenticated Mongo instead, set mongo.enabled
+    # to false and define MONGO_URI here.
     CONFIG_PATH: "/app/librechat.yaml"
     ALLOW_REGISTRATION: "true"
     ALLOW_EMAIL_LOGIN: "true"
@@ -36,16 +43,29 @@ librechat:
     version: 1.2.8
     cache: true
 
-mongodb:
-  image:
-    repository: mongo
-    # renovate: datasource=docker depName=mongo
-    tag: "7"
-    pullPolicy: IfNotPresent
-  persistence:
-    size: 8Gi
-    # Empty => cluster default StorageClass (local-path on k3s).
-    storageClass: ""
+# KubeBlocks MongoDB Cluster backing LibreChat (templates/mongo-cluster.yaml). Requires
+# the KubeBlocks operator + the mongodb addon (ClusterDefinition "mongodb") from the
+# k3s-workstation-platform layer. KubeBlocks generates the account secret
+# "<clusterName>-mongodb-account-root" and the primary (writer) service
+# "<clusterName>-mongodb-mongodb" (role=primary). The app's MONGO_URI (in the
+# librechat-env Secret) targets that service with directConnection=true.
+#
+# rootPasswordSecret lets the private repo pin the root password (a Secret with a
+# `password` key, KSOPS) so MONGO_URI can be built deterministically; leave it empty to
+# let KubeBlocks generate a random password (then read it from the account secret).
+# Disable the whole block to bring your own MongoDB (also set MONGO_URI in env above).
+mongo:
+  enabled: true
+  clusterName: librechat-mongo
+  # Supported serviceVersion values come from `kubectl get cmpv mongodb`.
+  serviceVersion: "7.0.28"
+  terminationPolicy: Delete
+  replicas: 1
+  storageClassName: ""
+  storage: 8Gi
+  # Secret (KSOPS, private repo) providing the root account password. Must contain a
+  # `password` key. Empty => KubeBlocks generates a random password.
+  rootPasswordSecret: librechat-mongodb-root
   resources:
     requests:
       cpu: 100m
