@@ -32,9 +32,15 @@ apps:
     chartPath: umbrella-charts/ai-platform/litellm
     overlay: true
     secrets: true
-    # The KubeBlocks Cluster is heavily defaulted server-side; diff server-side so it
-    # does not show as permanently OutOfSync.
-    serverSideDiff: true
+    # The KubeBlocks controller fills these on the Cluster after creation; ignore them
+    # so the app does not sit permanently OutOfSync.
+    ignoreDifferences:
+      - group: apps.kubeblocks.io
+        kind: Cluster
+        name: litellm-pg
+        jsonPointers:
+          - /spec/componentSpecs/0/componentDef
+          - /spec/componentSpecs/0/podUpdatePolicy
   - name: librechat
     namespace: librechat
     chartPath: umbrella-charts/ai-apps/librechat

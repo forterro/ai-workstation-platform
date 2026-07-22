@@ -8,12 +8,6 @@ kind: Application
 metadata:
   name: {{ .name }}
   namespace: {{ $root.Release.Namespace }}
-  {{- if .serverSideDiff }}
-  annotations:
-    # Diff against the server-rendered object so controller-defaulted fields (e.g.
-    # KubeBlocks Cluster defaults) do not read as perpetual drift.
-    argocd.argoproj.io/compare-options: ServerSideDiff=true
-  {{- end }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io/background
 spec:
@@ -47,6 +41,12 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+  {{- with .ignoreDifferences }}
+  # Fields defaulted by a resource's own controller after creation, which would
+  # otherwise read as perpetual drift.
+  ignoreDifferences:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- if and $root.Values.configRepoURL .secrets }}
 ---
 # Companion secrets app: deploys the config repo's `secrets/{{ .name }}` kustomization
