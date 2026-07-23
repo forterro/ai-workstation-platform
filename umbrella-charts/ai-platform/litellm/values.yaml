@@ -181,7 +181,7 @@ dbInit:
   enabled: true
   image:
     repository: postgres
-    tag: "17-alpine"
+    tag: "18-alpine"
     pullPolicy: IfNotPresent
   resources:
     requests:
