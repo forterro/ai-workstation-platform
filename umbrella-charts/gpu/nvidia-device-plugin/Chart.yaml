@@ -8,4 +8,4 @@ dependencies:
   # renovate: registryUrl=https://nvidia.github.io/k8s-device-plugin
   - name: nvidia-device-plugin
     repository: https://nvidia.github.io/k8s-device-plugin
-    version: 0.19.3
+    version: 0.20.0
