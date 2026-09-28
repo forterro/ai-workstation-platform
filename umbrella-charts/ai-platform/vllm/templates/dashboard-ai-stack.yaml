@@ -1,0 +1,17 @@
+{{/*
+Consolidated "AI Stack Perf" Grafana dashboard (vLLM + DCGM GPU + LiteLLM per-model).
+Discovered by the Grafana sidecar via the grafana_dashboard label; the JSON lives in
+dashboards/ai-stack-perf.json and is loaded verbatim.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-ai-stack-perf-dashboard
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "AI Platform"
+data:
+  ai-stack-perf.json: |-
+{{ .Files.Get "dashboards/ai-stack-perf.json" | indent 4 }}
