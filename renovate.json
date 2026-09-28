@@ -9,6 +9,20 @@
   "labels": ["dependencies"],
   "prConcurrentLimit": 0,
   "prHourlyLimit": 0,
+  "separateMultipleMajor": true,
+  "packageRules": [
+    {
+      "description": "Group every minor/patch/digest update into a single PR; majors stay on their own PR, one per major version (separateMultipleMajor).",
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    }
+  ],
+  "postUpgradeTasks": {
+    "commands": ["make deps"],
+    "fileFilters": ["**/Chart.lock", "**/charts/*.tgz"],
+    "executionMode": "branch"
+  },
   "helmv3": {
     "fileMatch": ["(^|/)Chart\\.yaml$"]
   },
