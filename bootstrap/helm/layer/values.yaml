@@ -23,6 +23,9 @@ apps:
     namespace: ollama
     chartPath: umbrella-charts/ai-platform/ollama
     overlay: true
+    # Some workstations disable Ollama via the config overlay (ollama.enabled: false),
+    # which renders this app empty; allow ArgoCD to prune it to zero resources.
+    allowEmpty: true
   - name: vllm
     namespace: ai-platform
     chartPath: umbrella-charts/ai-platform/vllm
