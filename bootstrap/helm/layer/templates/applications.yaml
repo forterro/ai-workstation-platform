@@ -38,6 +38,10 @@ spec:
     automated:
       prune: true
       selfHeal: true
+      {{- if .allowEmpty }}
+      # Overlay may disable the subchart (renders 0 resources); let ArgoCD prune to empty.
+      allowEmpty: true
+      {{- end }}
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
