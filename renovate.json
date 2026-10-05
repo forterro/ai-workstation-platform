@@ -10,12 +10,20 @@
   "prConcurrentLimit": 0,
   "prHourlyLimit": 0,
   "separateMultipleMajor": true,
+  "platformAutomerge": true,
   "packageRules": [
     {
       "description": "Group every minor/patch/digest update into a single PR; majors stay on their own PR, one per major version (separateMultipleMajor).",
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "groupName": "all non-major dependencies",
       "groupSlug": "all-minor-patch"
+    },
+    {
+      "description": "Auto-merge low-risk Helm chart patch/digest bumps once CI passes and the release has aged. Excludes the customManager image tags in values.yaml (those do not follow semver) and minor bumps, which stay on manual review. Requires branch protection with the CI checks as required status checks.",
+      "matchManagers": ["helmv3"],
+      "matchUpdateTypes": ["patch", "digest"],
+      "automerge": true,
+      "minimumReleaseAge": "3 days"
     }
   ],
   "postUpgradeTasks": {
