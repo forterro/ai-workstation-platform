@@ -31,3 +31,31 @@ jobs:
 
       - name: Render layer chart
         run: helm template ai-layer bootstrap/helm/layer >/dev/null
+
+  # A red run on a Renovate PR or a scheduled run is easy to miss: track it in an issue
+  # (commented on every new failure, closed by the next green run).
+  report:
+    name: Report CI failures
+    needs: [charts]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Open / close the CI failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_ISSUE_ASSIGNEES: ${{ vars.CI_ISSUE_ASSIGNEES }}
+          RESULT: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          args=()
+          if [ -n "${PR_URL:-}" ]; then args=(--context "PR: ${PR_URL}"); fi
+          python3 .github/scripts/ci-issue.py "$RESULT" --key "ci-${BRANCH}" \
+            --title "CI failure on ${BRANCH}" "${args[@]}"
