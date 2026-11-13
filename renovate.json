@@ -13,15 +13,17 @@
   "platformAutomerge": true,
   "packageRules": [
     {
-      "description": "Group every minor/patch/digest update into a single PR; majors stay on their own PR, one per major version (separateMultipleMajor).",
+      "description": "Group every minor/patch/digest update into a single reviewed PR (except the Helm chart patches, next rule); majors stay on their own PR, one per major version (separateMultipleMajor).",
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "groupName": "all non-major dependencies",
       "groupSlug": "all-minor-patch"
     },
     {
-      "description": "Auto-merge low-risk Helm chart patch/digest bumps once CI passes and the release has aged. Excludes the customManager image tags in values.yaml (those do not follow semver) and minor bumps, which stay on manual review. Requires branch protection with the CI checks as required status checks.",
+      "description": "Helm chart patch/digest bumps get their OWN group, auto-merged once CI passes and the release has aged: inside the big group they never merged (a group automerges only when every update in it may). Image tags (customManager, not semver) and minor bumps stay in the reviewed group. Requires branch protection with the CI checks as required status checks.",
       "matchManagers": ["helmv3"],
       "matchUpdateTypes": ["patch", "digest"],
+      "groupName": "helm chart patches",
+      "groupSlug": "helm-patch",
       "automerge": true,
       "minimumReleaseAge": "3 days"
     }
@@ -32,13 +34,13 @@
     "executionMode": "branch"
   },
   "helmv3": {
-    "fileMatch": ["(^|/)Chart\\.yaml$"]
+    "managerFilePatterns": ["/(^|/)Chart\\.yaml$/"]
   },
   "customManagers": [
     {
       "customType": "regex",
       "description": "Bump image tags and CLI versions annotated with a # renovate: comment",
-      "fileMatch": ["(^|/)values\\.yaml$", "(^|/)tool-versions\\.yaml$"],
+      "managerFilePatterns": ["/(^|/)values\\.yaml$/", "/(^|/)tool-versions\\.yaml$/"],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>[a-z-]+) depName=(?<depName>\\S+)(?: versioning=(?<versioning>\\S+))?\\s*\\n\\s*[A-Za-z0-9_.-]+:\\s*[\"']?(?<currentValue>[^\"'\\s]+)"
       ]
