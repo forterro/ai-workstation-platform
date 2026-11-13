@@ -41,3 +41,29 @@ jobs:
           # Permit the postUpgradeTasks `make deps` re-vendoring (Chart.lock + charts/*.tgz).
           RENOVATE_ALLOWED_COMMANDS: '["^make deps$"]'
           LOG_LEVEL: ${{ github.event.inputs.logLevel || 'info' }}
+
+  # A red run on a Renovate PR or a scheduled run is easy to miss: track it in an issue
+  # (commented on every new failure, closed by the next green run).
+  report:
+    name: Report CI failures
+    needs: [renovate]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Open / close the CI failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CI_ISSUE_ASSIGNEES: ${{ vars.CI_ISSUE_ASSIGNEES }}
+          RESULT: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          args=()
+          python3 .github/scripts/ci-issue.py "$RESULT" --key "renovate" \
+            --title "Renovate run failure" "${args[@]}"
